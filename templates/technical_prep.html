@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Preparation - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}">Study Schedule</a>
+                <a href="{{ url_for('technical_prep') }}" class="active">Technical Prep</a>
+                <a href="{{ url_for('interview_simulator') }}">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>🖥️ Technical Preparation Hub</h1>
+                <p>Everything you need to ace technical screening rounds and interviews</p>
+            </div>
+
+            <div class="tech-cards-grid">
+
+                <!-- DSA Practice -->
+                <a href="{{ url_for('dsa_questions') }}" class="tech-subject-card dsa">
+                    <div class="subject-icon">💻</div>
+                    <div class="subject-info">
+                        <h2>DSA Practice</h2>
+                        <p>Solve real coding problems from Striver's DSA Sheet with constraints and examples</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 Problems</span>
+                            <span class="meta-tag">Striver's Sheet</span>
+                            <span class="meta-tag">With Notes</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+                <!-- OS -->
+                <a href="{{ url_for('os_practice') }}" class="tech-subject-card os">
+                    <div class="subject-icon">🖥️</div>
+                    <div class="subject-info">
+                        <h2>Operating Systems</h2>
+                        <p>MCQs on Process Management, Memory Management, Scheduling, Deadlocks & more</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 MCQs</span>
+                            <span class="meta-tag">Technical Screening</span>
+                            <span class="meta-tag">Interview Level</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+                <!-- CN -->
+                <a href="{{ url_for('cn_practice') }}" class="tech-subject-card cn">
+                    <div class="subject-icon">🌐</div>
+                    <div class="subject-info">
+                        <h2>Computer Networks</h2>
+                        <p>MCQs on OSI Model, TCP/IP, Protocols, Subnetting, DNS & more</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 MCQs</span>
+                            <span class="meta-tag">Technical Screening</span>
+                            <span class="meta-tag">Interview Level</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+                <!-- DBMS -->
+                <a href="{{ url_for('dbms_practice') }}" class="tech-subject-card dbms">
+                    <div class="subject-icon">🗄️</div>
+                    <div class="subject-info">
+                        <h2>DBMS</h2>
+                        <p>MCQs on SQL, Normalization, ACID Properties, Joins, Transactions & more</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 MCQs</span>
+                            <span class="meta-tag">Technical Screening</span>
+                            <span class="meta-tag">Interview Level</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+                <!-- C++ -->
+                <a href="{{ url_for('cpp_practice') }}" class="tech-subject-card cpp">
+                    <div class="subject-icon">⚡</div>
+                    <div class="subject-info">
+                        <h2>C++ Programming</h2>
+                        <p>MCQs on OOP, STL, Pointers, Templates, Operator Overloading & more</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 MCQs</span>
+                            <span class="meta-tag">Technical Screening</span>
+                            <span class="meta-tag">Interview Level</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+                <!-- C -->
+                <a href="{{ url_for('c_practice') }}" class="tech-subject-card clang">
+                    <div class="subject-icon">🔤</div>
+                    <div class="subject-info">
+                        <h2>C Programming</h2>
+                        <p>MCQs on Pointers, Memory Management, File Handling, Macros & more</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 MCQs</span>
+                            <span class="meta-tag">Technical Screening</span>
+                            <span class="meta-tag">Interview Level</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+                <!-- Interview Simulator -->
+                <a href="{{ url_for('interview_simulator') }}" class="tech-subject-card interview">
+                    <div class="subject-icon">🎤</div>
+                    <div class="subject-info">
+                        <h2>Interview Simulator</h2>
+                        <p>Practice HR interview questions and get instant AI-powered feedback on your answers</p>
+                        <div class="subject-meta">
+                            <span class="meta-tag">10 Questions</span>
+                            <span class="meta-tag">AI Feedback</span>
+                            <span class="meta-tag">HR Round</span>
+                        </div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                </a>
+
+            </div>
+        </main>
+    </div>
+</body>
+</html>

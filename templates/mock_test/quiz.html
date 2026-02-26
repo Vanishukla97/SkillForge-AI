@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test - CareerPathAI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0f172a;
+            color: #fff;
+        }
+        .header {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .timer {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        .timer.warning { color: #ef4444; }
+        .quiz-container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        .question-panel {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+        .question-num {
+            background: #6366f1;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .option {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .option:hover {
+            border-color: #6366f1;
+            background: #1e293b;
+        }
+        .option.selected {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-prev {
+            background: #334155;
+            color: #fff;
+        }
+        .btn-next {
+            background: #6366f1;
+            color: #fff;
+        }
+        .btn-submit {
+            background: #10b981;
+            color: #fff;
+        }
+        .btn:hover { opacity: 0.9; transform: scale(1.05); }
+        .sidebar {
+            width: 250px;
+            background: #1e293b;
+            border-left: 1px solid #334155;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .q-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .q-num {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #334155;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .q-num.answered {
+            background: #10b981;
+        }
+        .q-num.current {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <strong id="testTitle">Mock Test</strong>
+            <span style="color: #94a3b8; margin-left: 15px;" id="progress">0/0 answered</span>
+        </div>
+        <div class="timer" id="timer">30:00</div>
+    </div>
+
+    <div class="quiz-container">
+        <div class="question-panel">
+            <span class="question-num" id="qNum">Q 1 of 30</span>
+            <div class="question-text" id="questionText"></div>
+            <div class="options" id="options"></div>
+            <div class="nav-buttons">
+                <button class="btn btn-prev" onclick="prevQuestion()">← Previous</button>
+                <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()">Next →</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 10px;">Questions</p>
+            <div class="q-grid" id="qGrid"></div>
+            <button class="btn btn-submit" style="width: 100%; margin-top: 20px;" onclick="submitTest()">
+                Submit Test
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const testData = JSON.parse(sessionStorage.getItem('mockTestData'));
+        const questions = testData.questions;
+        const attemptId = testData.attempt_id;
+        const duration = testData.test.duration_minutes * 60;
+        
+        let currentQ = 0;
+        let answers = {};
+        let timeLeft = duration;
+
+        function init() {
+            document.getElementById('testTitle').textContent = testData.test.title;
+            renderQuestion();
+            renderGrid();
+            startTimer();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQ];
+            document.getElementById('qNum').textContent = `Q ${currentQ + 1} of ${questions.length}`;
+            document.getElementById('questionText').textContent = q.question_text;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            ['A','B','C','D'].forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                if (answers[q.id] === opt) div.classList.add('selected');
+                div.innerHTML = `<strong>${opt}.</strong> ${q['option_' + opt.toLowerCase()]}`;
+                div.onclick = () => selectOption(q.id, opt);
+                optionsDiv.appendChild(div);
+            });
+
+            document.getElementById('nextBtn').textContent = 
+                currentQ === questions.length - 1 ? 'Submit Test ✓' : 'Next →';
+            
+            updateProgress();
+        }
+
+        function selectOption(qId, opt) {
+            answers[qId] = opt;
+            renderQuestion();
+            renderGrid();
+        }
+
+        function nextQuestion() {
+            if (currentQ < questions.length - 1) {
+                currentQ++;
+                renderQuestion();
+            } else {
+                submitTest();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQ > 0) {
+                currentQ--;
+                renderQuestion();
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('qGrid');
+            grid.innerHTML = '';
+            questions.forEach((q, i) => {
+                const div = document.createElement('div');
+                div.className = 'q-num';
+                if (i === currentQ) div.classList.add('current');
+                else if (answers[q.id]) div.classList.add('answered');
+                div.textContent = i + 1;
+                div.onclick = () => { currentQ = i; renderQuestion(); };
+                grid.appendChild(div);
+            });
+        }
+
+        function updateProgress() {
+            const answered = Object.keys(answers).length;
+            document.getElementById('progress').textContent = `${answered}/${questions.length} answered`;
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const s = (timeLeft % 60).toString().padStart(2, '0');
+                const timerEl = document.getElementById('timer');
+                timerEl.textContent = `${m}:${s}`;
+                if (timeLeft < 300) timerEl.classList.add('warning');
+                if (timeLeft <= 0) submitTest();
+            }, 1000);
+        }
+
+        function submitTest() {
+            if (!confirm('Submit your test? You cannot change answers after submission.')) return;
+
+            const timeTaken = duration - timeLeft;
+            fetch(`/mock_test/submit/${attemptId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ answers, timeTaken })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/mock_test/results/${attemptId}`;
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

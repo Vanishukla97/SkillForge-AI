@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Schedule - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}" class="active">Study Schedule</a>
+                <a href="{{ url_for('dsa_questions') }}">DSA Practice</a>
+                <a href="{{ url_for('interview_simulator') }}">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>📅 AI-Generated Study Schedule</h1>
+                <p>Personalized daily and weekly study plan</p>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Generate Schedule</h2>
+                <form id="scheduleForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hoursPerDay">Hours per Day</label>
+                            <select id="hoursPerDay" required>
+                                <option value="1">1 hour</option>
+                                <option value="2" selected>2 hours</option>
+                                <option value="3">3 hours</option>
+                                <option value="4">4 hours</option>
+                                <option value="5">5+ hours</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="daysPerWeek">Days per Week</label>
+                            <select id="daysPerWeek" required>
+                                <option value="3">3 days</option>
+                                <option value="4">4 days</option>
+                                <option value="5" selected>5 days</option>
+                                <option value="6">6 days</option>
+                                <option value="7">7 days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <p class="form-note">
+                        💡 <strong>Tip:</strong> Complete your Job Readiness assessment first for a more personalized schedule!
+                    </p>
+
+                    <button type="submit" class="btn-primary">Generate My Schedule</button>
+                </form>
+            </div>
+
+            <div id="scheduleDisplay" style="display: none;">
+                <div class="card">
+                    <h2>📊 Your Weekly Study Schedule</h2>
+                    <div id="weeklySchedule"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🔄 Revision Timetable</h2>
+                    <div id="revisionSchedule"></div>
+                </div>
+
+                <div class="card">
+                    <h2>📈 Weekly Goals</h2>
+                    <div class="goals-grid">
+                        <div class="goal-card">
+                            <div class="goal-icon">💻</div>
+                            <h3>DSA Practice</h3>
+                            <p class="goal-target">5 problems/week</p>
+                        </div>
+                        <div class="goal-card">
+                            <div class="goal-icon">🎤</div>
+                            <h3>Interview Prep</h3>
+                            <p class="goal-target">3 sessions/week</p>
+                        </div>
+                        <div class="goal-card">
+                            <div class="goal-icon">📚</div>
+                            <h3>Study Hours</h3>
+                            <p class="goal-target" id="targetHours">10 hrs/week</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const hoursPerDay = document.getElementById('hoursPerDay').value;
+            const daysPerWeek = document.getElementById('daysPerWeek').value;
+            
+            try {
+                const response = await fetch('/generate_schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        hours_per_day: hoursPerDay,
+                        days_per_week: daysPerWeek
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySchedule(data.schedule);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+
+        function displaySchedule(schedule) {
+            document.getElementById('scheduleDisplay').style.display = 'block';
+            
+            document.getElementById('targetHours').textContent = 
+                `${schedule.daily_hours * schedule.days_per_week} hrs/week`;
+            
+            let weeklyHtml = '<div class="weekly-schedule-grid">';
+            
+            schedule.weekly_schedule.forEach(day => {
+                weeklyHtml += `
+                    <div class="day-card">
+                        <div class="day-header">
+                            <h4>${day.day}</h4>
+                        </div>
+                        <div class="day-content">
+                            <p class="focus-label">Focus Skills:</p>
+                            <ul class="skills-list">
+                                ${day.focus_skills.map(skill => `<li>${skill}</li>`).join('')}
+                            </ul>
+                            <div class="activities">
+                                ${day.activities.map(activity => 
+                                    `<p class="activity">📌 ${activity}</p>`
+                                ).join('')}
+                            </div>
+                            ${day.revision ? '<p class="revision-note">✨ Includes revision</p>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            weeklyHtml += '</div>';
+            document.getElementById('weeklySchedule').innerHTML = weeklyHtml;
+            
+            if (schedule.weekend_revision) {
+                let revisionHtml = '<div class="revision-grid">';
+                
+                Object.entries(schedule.weekend_revision).forEach(([day, activity]) => {
+                    revisionHtml += `
+                        <div class="revision-card">
+                            <h4>${day}</h4>
+                            <p>${activity}</p>
+                        </div>
+                    `;
+                });
+                
+                revisionHtml += '</div>';
+                document.getElementById('revisionSchedule').innerHTML = revisionHtml;
+            }
+            
+            document.getElementById('scheduleDisplay').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

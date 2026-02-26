@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Readiness - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}" class="active">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}">Study Schedule</a>
+                <a href="{{ url_for('dsa_questions') }}">DSA Practice</a>
+                <a href="{{ url_for('interview_simulator') }}">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>🎯 Job Readiness Assessment</h1>
+                <p>Discover how ready you are for your target role</p>
+            </div>
+
+            <div class="card">
+                <h2>📝 Assess Your Readiness</h2>
+                <form id="readinessForm">
+                    <div class="form-group">
+                        <label for="currentSkills">Your Current Skills (comma-separated)</label>
+                        <input type="text" id="currentSkills" required
+                               placeholder="e.g., Python, JavaScript, React, DSA, Problem Solving, Git">
+                        <small>List all your technical skills separated by commas</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="targetRole">Target Role</label>
+                        <select id="targetRole" required>
+                            <option value="">Select a role...</option>
+                            <option value="Software Development Engineer (SDE)">Software Development Engineer (SDE)</option>
+                            <option value="Web Developer">Web Developer</option>
+                            <option value="Data Scientist">Data Scientist</option>
+                            <option value="DevOps Engineer">DevOps Engineer</option>
+                            <option value="Mobile Developer">Mobile Developer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="targetCompany">Target Company (Optional)</label>
+                        <input type="text" id="targetCompany" 
+                               placeholder="e.g., Google, Microsoft, Amazon, Startup">
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-large">Calculate Readiness</button>
+                </form>
+            </div>
+
+            <div id="resultsSection" style="display: none;">
+                <div class="card">
+                    <h2>📊 Your Readiness Score</h2>
+                    <div id="scoreDisplay"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🔍 Skill Gap Analysis</h2>
+                    <div id="gapAnalysis"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🚀 Next Steps</h2>
+                    <div id="actionPlan"></div>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('study_schedule') }}" class="btn-primary">Generate Study Schedule</a>
+                        <a href="{{ url_for('roadmap') }}" class="btn-secondary">View Full Roadmap</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('readinessForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentSkills = document.getElementById('currentSkills').value;
+            const targetRole = document.getElementById('targetRole').value;
+            const targetCompany = document.getElementById('targetCompany').value;
+            
+            try {
+                const response = await fetch('/assess_readiness', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ current_skills: currentSkills, target_role: targetRole, target_company: targetCompany })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data.readiness, data.roadmap, targetRole);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+
+        function displayResults(readiness, roadmap, targetRole) {
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            const score = readiness.readiness_score;
+            let color, emoji, status;
+            
+            if (score >= 80) {
+                color = '#27ae60';
+                emoji = '🎉';
+                status = 'Excellent!';
+            } else if (score >= 60) {
+                color = '#3498db';
+                emoji = '👍';
+                status = 'Good!';
+            } else if (score >= 40) {
+                color = '#f39c12';
+                emoji = '📚';
+                status = 'Getting There!';
+            } else {
+                color = '#e74c3c';
+                emoji = '💪';
+                status = 'Keep Building!';
+            }
+            
+            document.getElementById('scoreDisplay').innerHTML = `
+                <div class="readiness-score" style="border-color: ${color};">
+                    <div class="score-emoji">${emoji}</div>
+                    <div class="score-number" style="color: ${color};">${score.toFixed(1)}%</div>
+                    <div class="score-status">${status}</div>
+                    <p class="score-message">${readiness.status}</p>
+                </div>
+                <div class="score-details">
+                    <p><strong>For:</strong> ${targetRole}</p>
+                    <p><strong>Skills Matched:</strong> ${readiness.required_match.length + readiness.preferred_match.length} skills</p>
+                </div>
+            `;
+            
+            let gapHtml = '<div class="gap-analysis">';
+            
+            if (readiness.missing_required.length > 0) {
+                gapHtml += `
+                    <div class="gap-section required">
+                        <h3>⚠️ Critical Skills Gap (Must Have)</h3>
+                        <ul>
+                            ${readiness.missing_required.map(skill => `<li>${skill}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (readiness.missing_preferred.length > 0) {
+                gapHtml += `
+                    <div class="gap-section preferred">
+                        <h3>📈 Nice to Have Skills</h3>
+                        <ul>
+                            ${readiness.missing_preferred.map(skill => `<li>${skill}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (readiness.required_match.length > 0) {
+                gapHtml += `
+                    <div class="gap-section matched">
+                        <h3>✅ Skills You Already Have</h3>
+                        <ul>
+                            ${readiness.required_match.map(skill => `<li>${skill}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            gapHtml += '</div>';
+            document.getElementById('gapAnalysis').innerHTML = gapHtml;
+            
+            let actionHtml = '<div class="action-plan">';
+            
+            if (roadmap && roadmap.phases) {
+                actionHtml += `
+                    <p class="plan-intro">Based on your assessment, here's your recommended learning path:</p>
+                    <div class="phases-overview">
+                `;
+                
+                roadmap.phases.forEach(phase => {
+                    actionHtml += `
+                        <div class="phase-card">
+                            <div class="phase-header">
+                                <span class="phase-number">Phase ${phase.phase}</span>
+                                <span class="phase-duration">${phase.duration_weeks} weeks</span>
+                            </div>
+                            <h4>${phase.title}</h4>
+                            <ul class="phase-skills">
+                                ${phase.skills.slice(0, 3).map(skill => `<li>${skill}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+                
+                actionHtml += '</div>';
+            }
+            
+            actionHtml += '</div>';
+            document.getElementById('actionPlan').innerHTML = actionHtml;
+            
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

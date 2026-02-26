@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Simulator - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}">Study Schedule</a>
+                <a href="{{ url_for('dsa_questions') }}">DSA Practice</a>
+                <a href="{{ url_for('interview_simulator') }}" class="active">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>🎤 AI Interview Simulator</h1>
+                <p>Practice HR interview questions and get instant AI feedback</p>
+            </div>
+
+            <div class="card">
+                <div class="interview-selector">
+                    <label for="questionSelect">Select a Question:</label>
+                    <select id="questionSelect" class="form-select">
+                        {% for question in questions %}
+                        <option value="{{ loop.index0 }}">{{ question }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="interview-question">
+                    <div class="question-icon">❓</div>
+                    <h2 id="currentQuestion">{{ questions[0] }}</h2>
+                </div>
+
+                <div class="interview-answer">
+                    <label for="answerText">Your Answer:</label>
+                    <textarea id="answerText" rows="8" 
+                              placeholder="Type your answer here... Be specific and use examples. Aim for 50-150 words."></textarea>
+                    <div class="word-count">
+                        Words: <span id="wordCount">0</span> | Characters: <span id="charCount">0</span>
+                    </div>
+                </div>
+
+                <button onclick="submitAnswer()" class="btn-primary btn-large">Get AI Feedback</button>
+
+                <div id="feedback" class="feedback-container" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3>💡 Interview Tips</h3>
+                <ul class="tips-list">
+                    <li><strong>STAR Method:</strong> Structure answers using Situation, Task, Action, Result</li>
+                    <li><strong>Be Specific:</strong> Use concrete examples from your experience</li>
+                    <li><strong>Stay Positive:</strong> Even when discussing challenges or weaknesses</li>
+                    <li><strong>Show Growth:</strong> Demonstrate how you learn from experiences</li>
+                    <li><strong>Be Authentic:</strong> Genuine responses resonate better than rehearsed ones</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const questions = {{ questions|tojson|safe }};
+        
+        document.getElementById('questionSelect').addEventListener('change', function(e) {
+            const index = e.target.value;
+            document.getElementById('currentQuestion').textContent = questions[index];
+            document.getElementById('answerText').value = '';
+            document.getElementById('feedback').style.display = 'none';
+        });
+
+        document.getElementById('answerText').addEventListener('input', function(e) {
+            const text = e.target.value;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            
+            document.getElementById('wordCount').textContent = words;
+            document.getElementById('charCount').textContent = chars;
+        });
+
+        async function submitAnswer() {
+            const question = document.getElementById('currentQuestion').textContent;
+            const answer = document.getElementById('answerText').value.trim();
+            
+            if (!answer) {
+                alert('Please type your answer first!');
+                return;
+            }
+            
+            if (answer.split(/\s+/).length < 10) {
+                alert('Your answer is too short. Please provide a more detailed response (at least 10 words).');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/evaluate_interview', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question, answer: answer })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const evaluation = data.evaluation;
+                    const feedbackDiv = document.getElementById('feedback');
+                    
+                    let rating, ratingColor, ratingEmoji;
+                    if (evaluation.overall_score >= 80) {
+                        rating = 'Excellent';
+                        ratingColor = '#27ae60';
+                        ratingEmoji = '🌟';
+                    } else if (evaluation.overall_score >= 60) {
+                        rating = 'Good';
+                        ratingColor = '#3498db';
+                        ratingEmoji = '👍';
+                    } else if (evaluation.overall_score >= 40) {
+                        rating = 'Fair';
+                        ratingColor = '#f39c12';
+                        ratingEmoji = '📈';
+                    } else {
+                        rating = 'Needs Improvement';
+                        ratingColor = '#e74c3c';
+                        ratingEmoji = '💪';
+                    }
+                    
+                    feedbackDiv.innerHTML = `
+                        <div class="feedback-header">
+                            <h3>AI Feedback</h3>
+                        </div>
+                        
+                        <div class="overall-rating" style="border-color: ${ratingColor};">
+                            <div class="rating-emoji">${ratingEmoji}</div>
+                            <div class="rating-score" style="color: ${ratingColor};">
+                                ${evaluation.overall_score.toFixed(1)}/100
+                            </div>
+                            <div class="rating-text" style="color: ${ratingColor};">${rating}</div>
+                        </div>
+                        
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <span class="score-label">Sentiment & Tone</span>
+                                <div class="score-bar-container">
+                                    <div class="score-bar" style="width: ${evaluation.sentiment_score}%; background: #3498db;"></div>
+                                </div>
+                                <span class="score-value">${evaluation.sentiment_score.toFixed(1)}%</span>
+                            </div>
+                            
+                            <div class="score-item">
+                                <span class="score-label">Professional Keywords</span>
+                                <div class="score-bar-container">
+                                    <div class="score-bar" style="width: ${evaluation.keyword_score}%; background: #9b59b6;"></div>
+                                </div>
+                                <span class="score-value">${evaluation.keyword_score.toFixed(1)}%</span>
+                            </div>
+                            
+                            <div class="score-item">
+                                <span class="score-label">Response Length</span>
+                                <div class="score-bar-container">
+                                    <div class="score-bar" style="width: ${evaluation.length_score}%; background: #2ecc71;"></div>
+                                </div>
+                                <span class="score-value">${evaluation.length_score.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="feedback-text">
+                            <h4>💬 Personalized Feedback:</h4>
+                            <p>${evaluation.feedback}</p>
+                        </div>
+                        
+                        <div class="feedback-actions">
+                            <button onclick="tryAnother()" class="btn-secondary">Try Another Question</button>
+                            <a href="{{ url_for('dashboard') }}" class="btn-primary">Back to Dashboard</a>
+                        </div>
+                    `;
+                    
+                    feedbackDiv.style.display = 'block';
+                    feedbackDiv.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        function tryAnother() {
+            document.getElementById('answerText').value = '';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('wordCount').textContent = '0';
+            document.getElementById('charCount').textContent = '0';
+            
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            document.getElementById('questionSelect').value = randomIndex;
+            document.getElementById('currentQuestion').textContent = questions[randomIndex];
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Roadmap - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}">Study Schedule</a>
+                <a href="{{ url_for('dsa_questions') }}">DSA Practice</a>
+                <a href="{{ url_for('interview_simulator') }}">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}" class="active">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>🗺️ Your Career Roadmap</h1>
+                <p>Personalized learning path to your dream job</p>
+            </div>
+
+            {% if roadmap and latest %}
+            <div class="card roadmap-header">
+                <div class="roadmap-info">
+                    <h2>Career Path Overview</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Target Role:</span>
+                            <span class="info-value">{{ latest.target_role }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Readiness:</span>
+                            <span class="info-value readiness-score">{{ "%.1f"|format(latest.readiness_score) }}%</span>
+                        </div>
+                        {% if latest.target_company %}
+                        <div class="info-item">
+                            <span class="info-label">Target Company:</span>
+                            <span class="info-value">{{ latest.target_company }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <span class="info-label">Total Duration:</span>
+                            <span class="info-value">{{ roadmap.total_weeks }} weeks</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="roadmap-actions">
+                    <a href="{{ url_for('download_roadmap_pdf') }}" class="btn-primary btn-large">
+                        📄 Download PDF Roadmap
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Learning Timeline</h2>
+                <div class="timeline">
+                    {% for phase in roadmap.phases %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">
+                            <div class="marker-circle">{{ phase.phase }}</div>
+                            <div class="marker-line"></div>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="phase-card">
+                                <div class="phase-header">
+                                    <h3>{{ phase.title }}</h3>
+                                    <span class="phase-duration">{{ phase.duration_weeks }} weeks</span>
+                                </div>
+                                
+                                <div class="phase-body">
+                                    <h4>Skills to Master:</h4>
+                                    <div class="skills-grid">
+                                        {% for skill in phase.skills %}
+                                        <span class="skill-badge">{{ skill }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if phase.resources %}
+                                    <h4>Recommended Resources:</h4>
+                                    <ul class="resources-list">
+                                        {% for resource in phase.resources %}
+                                        <li>{{ resource }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>✅ Track Your Progress</h2>
+                <div class="progress-tracker">
+                    <p class="tracker-intro">
+                        Mark phases as complete as you progress through your roadmap!
+                    </p>
+                    <div class="phases-checklist">
+                        {% for phase in roadmap.phases %}
+                        <div class="checklist-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="phase-checkbox" data-phase="{{ phase.phase }}">
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-text">Phase {{ phase.phase }}: {{ phase.title }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="progress-stats">
+                        <p>Progress: <span id="progressPercentage">0%</span></p>
+                        <div class="progress-bar-container">
+                            <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🚀 Next Steps</h2>
+                <div class="action-buttons-grid">
+                    <a href="{{ url_for('study_schedule') }}" class="action-btn">
+                        <div class="btn-icon">📅</div>
+                        <h3>Create Study Schedule</h3>
+                        <p>Generate daily study plan</p>
+                    </a>
+                    <a href="{{ url_for('dsa_questions') }}" class="action-btn">
+                        <div class="btn-icon">💻</div>
+                        <h3>Practice DSA</h3>
+                        <p>Test your coding skills</p>
+                    </a>
+                    <a href="{{ url_for('interview_simulator') }}" class="action-btn">
+                        <div class="btn-icon">🎤</div>
+                        <h3>Interview Prep</h3>
+                        <p>Practice HR questions</p>
+                    </a>
+                    <a href="{{ url_for('job_readiness') }}" class="action-btn">
+                        <div class="btn-icon">🔄</div>
+                        <h3>Reassess Readiness</h3>
+                        <p>Check progress</p>
+                    </a>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="card empty-state">
+                <div class="empty-icon">🗺️</div>
+                <h2>No Roadmap Generated Yet</h2>
+                <p>Complete your Job Readiness assessment to generate a personalized learning roadmap!</p>
+                <a href="{{ url_for('job_readiness') }}" class="btn-primary btn-large">
+                    Start Assessment
+                </a>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        const checkboxes = document.querySelectorAll('.phase-checkbox');
+        const totalPhases = checkboxes.length;
+        
+        function loadProgress() {
+            checkboxes.forEach(checkbox => {
+                const phase = checkbox.getAttribute('data-phase');
+                const saved = localStorage.getItem(`phase-${phase}`);
+                if (saved === 'true') {
+                    checkbox.checked = true;
+                }
+            });
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const completed = document.querySelectorAll('.phase-checkbox:checked').length;
+            const percentage = totalPhases > 0 ? (completed / totalPhases * 100).toFixed(0) : 0;
+            
+            document.getElementById('progressPercentage').textContent = `${percentage}%`;
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+            
+            const progressBar = document.getElementById('progressBar');
+            if (percentage >= 75) {
+                progressBar.style.background = '#27ae60';
+            } else if (percentage >= 50) {
+                progressBar.style.background = '#3498db';
+            } else if (percentage >= 25) {
+                progressBar.style.background = '#f39c12';
+            } else {
+                progressBar.style.background = '#e74c3c';
+            }
+        }
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const phase = this.getAttribute('data-phase');
+                localStorage.setItem(`phase-${phase}`, this.checked);
+                updateProgress();
+            });
+        });
+        
+        if (totalPhases > 0) {
+            loadProgress();
+        }
+    </script>
+</body>
+</html>

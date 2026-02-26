@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company.name }} Roles - CareerPathAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .roles-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .back-link {
+            color: #6366f1;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .back-link:hover { color: #818cf8; }
+        .role-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .role-title {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .role-level {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .skill-tag {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+        }
+        .check-btn {
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .check-btn:hover {
+            background: #4f46e5;
+            transform: scale(1.05);
+        }
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .upload-box {
+            border: 2px dashed #334155;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 20px 0;
+        }
+        .upload-box:hover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .upload-box.active {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .progress-steps {
+            margin: 20px 0;
+        }
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            color: #64748b;
+        }
+        .progress-step.active {
+            color: #6366f1;
+        }
+        .progress-step.done {
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">CareerPathAI</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('mock_test_subjects') }}">Mock Tests</a>
+            <a href="{{ url_for('resume_tracker') }}">Resume Tracker</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="roles-container">
+        <a href="{{ url_for('resume_tracker') }}" class="back-link">← All Companies</a>
+        <h1 style="color: #fff; margin-bottom: 10px;">{{ company.name }} — Roles</h1>
+        <p style="color: #94a3b8; margin-bottom: 30px;">Select the role you're targeting</p>
+
+        {% for role in roles %}
+        <div class="role-card">
+            <div class="role-header">
+                <div style="flex: 1;">
+                    <h3 class="role-title">{{ role.title }}</h3>
+                    <p class="role-level">{{ role.experience_level }} · Min CGPA: {{ role.min_cgpa }}</p>
+                    
+                    {% if role.required_skills %}
+                    <div class="skills-container">
+                        {% set skills = role.required_skills|from_json %}
+                        {% for skill in skills[:6] %}
+                        <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <button class="check-btn" onclick="openUploadModal({{ role.id }}, '{{ role.title }}')">
+                    Check Fit →
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="modal-content">
+            <h2 style="color: #fff; margin-bottom: 10px;" id="modalTitle">Upload Resume</h2>
+            <p style="color: #94a3b8; margin-bottom: 20px;" id="modalRole"></p>
+
+            <div id="uploadStage">
+                <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">☁️</div>
+                    <p style="color: #fff; font-weight: 600;">Click to upload PDF</p>
+                    <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 5px;">Max 5MB</p>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf" style="display: none;" onchange="handleFileSelect(event)">
+                
+                <div id="fileName" style="color: #10b981; text-align: center; margin-bottom: 15px; display: none;"></div>
+                
+                <button class="check-btn" id="uploadBtn" style="width: 100%; display: none;" onclick="uploadResume()">
+                    Analyze Resume →
+                </button>
+            </div>
+
+            <div id="processingStage" style="display: none;">
+                <div class="progress-steps">
+                    <div class="progress-step active" id="step1">
+                        <span>⟳</span>
+                        <span>Extracting text from PDF...</span>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <span>⟳</span>
+                        <span>Identifying your skills...</span>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <span>⟳</span>
+                        <span>Generating resume embedding...</span>
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <span>⟳</span>
+                        <span>Calculating readiness score...</span>
+                    </div>
+                    <div class="progress-step" id="step5">
+                        <span>⟳</span>
+                        <span>Building improvement roadmap...</span>
+                    </div>
+                </div>
+            </div>
+
+            <button style="background: #334155; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 20px; cursor: pointer;" onclick="closeModal()">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedRoleId = null;
+        let selectedFile = null;
+        let resumeId = null;
+
+        function openUploadModal(roleId, roleTitle) {
+            selectedRoleId = roleId;
+            document.getElementById('modalRole').textContent = roleTitle;
+            document.getElementById('uploadModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            resetModal();
+        }
+
+        function resetModal() {
+            selectedFile = null;
+            document.getElementById('uploadBox').classList.remove('active');
+            document.getElementById('fileName').style.display = 'none';
+            document.getElementById('uploadBtn').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadStage').style.display = 'block';
+            document.getElementById('processingStage').style.display = 'none';
+        }
+
+        function handleFileSelect(event) {
+            selectedFile = event.target.files[0];
+            if (selectedFile && selectedFile.type === 'application/pdf') {
+                document.getElementById('uploadBox').classList.add('active');
+                document.getElementById('fileName').textContent = '✓ ' + selectedFile.name;
+                document.getElementById('fileName').style.display = 'block';
+                document.getElementById('uploadBtn').style.display = 'block';
+            }
+        }
+
+        async function uploadResume() {
+            if (!selectedFile) return;
+
+            document.getElementById('uploadStage').style.display = 'none';
+            document.getElementById('processingStage').style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('resume', selectedFile);
+
+            try {
+                // Step 1: Upload resume
+                markStepDone(1);
+                const uploadRes = await fetch('/api/resume/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                
+                if (!uploadData.success) {
+                    alert('Upload failed: ' + uploadData.error);
+                    closeModal();
+                    return;
+                }
+
+                resumeId = uploadData.resumeId;
+                markStepDone(2);
+                markStepDone(3);
+
+                // Step 2: Assess resume
+                document.getElementById('step4').classList.add('active');
+                const assessRes = await fetch('/api/resume/assess', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        resumeId: resumeId,
+                        roleId: selectedRoleId
+                    })
+                });
+                const assessData = await assessRes.json();
+
+                if (!assessData.success) {
+                    alert('Assessment failed: ' + assessData.error);
+                    closeModal();
+                    return;
+                }
+
+                markStepDone(4);
+                markStepDone(5);
+
+                // Redirect to results
+                setTimeout(() => {
+                    window.location.href = `/resume_tracker/result/${assessData.assessmentId}`;
+                }, 1000);
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+                closeModal();
+            }
+        }
+
+        function markStepDone(stepNum) {
+            const step = document.getElementById('step' + stepNum);
+            step.classList.remove('active');
+            step.classList.add('done');
+            step.querySelector('span:first-child').textContent = '✓';
+        }
+    </script>
+</body>
+</html>

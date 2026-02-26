@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Tests - CareerPathAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .subjects-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .subject-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+        }
+        .subject-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .subject-name {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .subject-desc {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .page-header h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .page-header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">CareerPathAI</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('mock_test_subjects') }}" class="active">Mock Tests</a>
+            <a href="{{ url_for('resume_tracker') }}">Resume Tracker</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="subjects-container">
+        <div class="page-header">
+            <h1>📝 Mock Tests</h1>
+            <p>Choose a subject to start practicing</p>
+        </div>
+
+        <div class="subjects-grid">
+            {% for subject in subjects %}
+            <a href="{{ url_for('mock_test_list', subject_id=subject.id) }}" class="subject-card">
+                <span class="subject-icon">{{ subject.icon }}</span>
+                <h2 class="subject-name">{{ subject.name }}</h2>
+                <p class="subject-desc">{{ subject.description }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

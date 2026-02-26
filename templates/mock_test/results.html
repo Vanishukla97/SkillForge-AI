@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results - CareerPathAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .results-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .score-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .score-big {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .score-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .section-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .topic-bar {
+            margin-bottom: 15px;
+        }
+        .topic-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+        .weak-area {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .priority-critical { background: #ef4444; color: #fff; }
+        .priority-high { background: #f97316; color: #fff; }
+        .priority-medium { background: #eab308; color: #fff; }
+        .question-review {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .question-status {
+            font-size: 1.2rem;
+        }
+        .question-details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #334155;
+        }
+        .question-details.active {
+            display: block;
+        }
+        .option-box {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #334155;
+        }
+        .option-correct {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+        .option-wrong {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+        .explanation-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">CareerPathAI</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('mock_test_subjects') }}">Mock Tests</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="results-container">
+        <div class="score-card">
+            <div class="score-big" style="color: {% if attempt.percentage >= 80 %}#10b981{% elif attempt.percentage >= 60 %}#3b82f6{% elif attempt.percentage >= 40 %}#eab308{% else %}#ef4444{% endif %}">
+                {{ "%.1f"|format(attempt.percentage) }}%
+            </div>
+            <div class="score-label" style="color: {% if attempt.percentage >= 80 %}#10b981{% elif attempt.percentage >= 60 %}#3b82f6{% elif attempt.percentage >= 40 %}#eab308{% else %}#ef4444{% endif %}">
+                {% if attempt.percentage >= 80 %}Excellent!{% elif attempt.percentage >= 60 %}Good Job!{% elif attempt.percentage >= 40 %}Fair{% else %}Needs Work{% endif %}
+            </div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value" style="color: #10b981;">{{ attempt.total_correct }}</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" style="color: #ef4444;">{{ attempt.total_incorrect }}</div>
+                    <div class="stat-label">Wrong</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" style="color: #94a3b8;">{{ attempt.total_skipped }}</div>
+                    <div class="stat-label">Skipped</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" style="color: #6366f1;">{{ "%.1f"|format(attempt.total_score) }}</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+        </div>
+
+        {% if topic_performance %}
+        <div class="section-card">
+            <h2 class="section-title">📊 Topic-wise Performance</h2>
+            {% for topic in topic_performance %}
+            <div class="topic-bar">
+                <div class="topic-name">
+                    <span style="color: #fff;">{{ topic.topic }}</span>
+                    <span style="color: {% if topic.accuracy >= 70 %}#10b981{% elif topic.accuracy >= 40 %}#eab308{% else %}#ef4444{% endif %}; font-weight: 600;">
+                        {{ "%.1f"|format(topic.accuracy) }}%
+                    </span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ topic.accuracy }}%; background: {% if topic.accuracy >= 70 %}#10b981{% elif topic.accuracy >= 40 %}#eab308{% else %}#ef4444{% endif %};"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if weak_areas %}
+        <div class="section-card" style="border-color: rgba(239, 68, 68, 0.3);">
+            <h2 class="section-title">⚠️ Weak Areas Detected</h2>
+            {% for weak in weak_areas %}
+            <div class="weak-area">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="color: #fff; font-weight: 600;">{{ weak.topic }}</span>
+                    <div>
+                        <span class="priority-badge priority-{{ weak.priority.lower() }}">{{ weak.priority }}</span>
+                    </div>
+                </div>
+                <p style="color: #94a3b8; font-size: 0.9rem;">{{ weak.suggestion }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="section-card">
+            <h2 class="section-title">📝 Question Review</h2>
+            {% for ans in answers %}
+            <div class="question-review" style="border-left: 3px solid {% if ans.is_correct %}#10b981{% elif ans.is_correct == 0 %}#ef4444{% else %}#94a3b8{% endif %};">
+                <div class="question-header" onclick="toggleDetails({{ loop.index0 }})">
+                    <div>
+                        <span class="question-status">
+                            {% if ans.is_correct %}✅{% elif ans.is_correct == 0 %}❌{% else %}⏩{% endif %}
+                        </span>
+                        <span style="color: #fff; margin-left: 10px;">{{ ans.question_text[:80] }}...</span>
+                    </div>
+                    <span style="color: #94a3b8;">▼</span>
+                </div>
+                <div class="question-details" id="details-{{ loop.index0 }}">
+                    <div style="margin-bottom: 15px;">
+                        {% for opt in ['A','B','C','D'] %}
+                        <div class="option-box {% if opt == ans.correct_option %}option-correct{% elif opt == ans.selected_option and not ans.is_correct %}option-wrong{% endif %}">
+                            <strong>{{ opt }}.</strong> {{ ans['option_' + opt.lower()] }}
+                            {% if opt == ans.correct_option %}<span style="color: #10b981; float: right;">✓ Correct</span>{% endif %}
+                            {% if opt == ans.selected_option and not ans.is_correct %}<span style="color: #ef4444; float: right;">Your answer</span>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if ans.explanation %}
+                    <div class="explanation-box">
+                        <strong style="color: #3b82f6;">💡 Explanation</strong>
+                        <p style="color: #cbd5e1; margin-top: 10px; line-height: 1.6;">{{ ans.explanation }}</p>
+                        
+                        {% if ans.concept_summary %}
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(59, 130, 246, 0.3);">
+                            <strong style="color: #8b5cf6;">📚 Concept</strong>
+                            <p style="color: #cbd5e1; margin-top: 8px;">{{ ans.concept_summary }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if ans.memory_tip %}
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(59, 130, 246, 0.3);">
+                            <strong style="color: #eab308;">💡 Memory Tip</strong>
+                            <p style="color: #cbd5e1; margin-top: 8px;">{{ ans.memory_tip }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('mock_test_subjects') }}" class="btn btn-next">← Back to Subjects</a>
+        </div>
+    </div>
+
+    <script>
+        function toggleDetails(index) {
+            const details = document.getElementById(`details-${index}`);
+            details.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

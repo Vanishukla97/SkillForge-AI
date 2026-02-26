@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Practice - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}">Study Schedule</a>
+                <a href="{{ url_for('dsa_questions') }}" class="active">DSA Practice</a>
+                <a href="{{ url_for('interview_simulator') }}">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <h1>💻 DSA Practice Quiz</h1>
+                <p>Test your Data Structures & Algorithms knowledge</p>
+            </div>
+
+            <div class="card quiz-container">
+                <div class="quiz-info">
+                    <span class="quiz-badge">{{ questions|length }} Questions</span>
+                    <span class="quiz-badge">Multiple Choice</span>
+                </div>
+
+                <form id="dsaForm">
+                    {% for question in questions %}
+                    <div class="question-card">
+                        <div class="question-header">
+                            <span class="question-number">Q{{ loop.index }}</span>
+                            <h3>{{ question.question }}</h3>
+                        </div>
+                        
+                        <div class="options-container">
+                            {% for option in question.options %}
+                            <label class="option-label">
+                                <input type="radio" name="q{{ question.id }}" value="{{ option }}" required>
+                                <span class="option-text">{{ option }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn-primary btn-large">Submit Quiz</button>
+                </form>
+
+                <div id="results" class="results-container" style="display: none;">
+                    <div class="results-header">
+                        <h2>Quiz Results</h2>
+                    </div>
+                    <div id="scoreDisplay" class="score-display"></div>
+                    <div class="results-actions">
+                        <button onclick="location.reload()" class="btn-secondary">Retake Quiz</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn-primary">Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('dsaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const answers = {};
+            
+            for (let [key, value] of formData.entries()) {
+                const questionId = key.substring(1);
+                answers[questionId] = value;
+            }
+            
+            try {
+                const response = await fetch('/submit_dsa', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ answers })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('dsaForm').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+                    
+                    const scoreDisplay = document.getElementById('scoreDisplay');
+                    const percentage = data.percentage;
+                    let grade, color, emoji;
+                    
+                    if (percentage >= 80) {
+                        grade = 'Excellent!';
+                        color = '#27ae60';
+                        emoji = '🎉';
+                    } else if (percentage >= 60) {
+                        grade = 'Good!';
+                        color = '#3498db';
+                        emoji = '👍';
+                    } else if (percentage >= 40) {
+                        grade = 'Fair';
+                        color = '#f39c12';
+                        emoji = '📚';
+                    } else {
+                        grade = 'Keep Practicing';
+                        color = '#e74c3c';
+                        emoji = '💪';
+                    }
+                    
+                    scoreDisplay.innerHTML = `
+                        <div class="score-card" style="border-color: ${color};">
+                            <div class="score-emoji">${emoji}</div>
+                            <div class="score-number" style="color: ${color};">
+                                ${data.score} / ${data.total}
+                            </div>
+                            <div class="score-percentage">${percentage.toFixed(1)}%</div>
+                            <div class="score-grade" style="color: ${color};">${grade}</div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

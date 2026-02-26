@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject.name }} Tests - CareerPathAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .tests-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .back-link {
+            color: #6366f1;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .back-link:hover { color: #818cf8; }
+        .test-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-info h3 {
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+        }
+        .test-info p {
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+        .test-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .difficulty-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .difficulty-easy { background: #10b981; color: #fff; }
+        .difficulty-medium { background: #f59e0b; color: #fff; }
+        .difficulty-hard { background: #ef4444; color: #fff; }
+        .start-btn {
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .start-btn:hover {
+            background: #4f46e5;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">CareerPathAI</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('mock_test_subjects') }}">Mock Tests</a>
+            <a href="{{ url_for('resume_tracker') }}">Resume Tracker</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="tests-container">
+        <a href="{{ url_for('mock_test_subjects') }}" class="back-link">← Back to Subjects</a>
+        <h1 style="color: #fff; margin-bottom: 10px;">{{ subject.icon }} {{ subject.name }} Mock Tests</h1>
+        <p style="color: #94a3b8; margin-bottom: 30px;">Select a test to begin</p>
+
+        {% for test in tests %}
+        <div class="test-card">
+            <div class="test-info">
+                <h3>{{ test.title }}</h3>
+                <p>{{ test.description }}</p>
+                <div class="test-meta">
+                    <span>📝 {{ test.question_count }} questions</span>
+                    <span>⏱ {{ test.duration_minutes }} min</span>
+                    <span class="difficulty-badge difficulty-{{ test.difficulty.lower() }}">
+                        {{ test.difficulty }}
+                    </span>
+                </div>
+            </div>
+            <button class="start-btn" onclick="startTest({{ test.id }})">Start →</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function startTest(testId) {
+            fetch(`/mock_test/start/${testId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    sessionStorage.setItem('mockTestData', JSON.stringify(data));
+                    window.location.href = `/mock_test/take/${data.attempt_id}`;
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(err => alert('Error starting test'));
+        }
+    </script>
+</body>
+</html>

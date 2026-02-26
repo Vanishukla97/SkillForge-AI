@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SkillForge AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">⚡ SkillForge AI</div>
+            <div class="nav-menu">
+                <a href="{{ url_for('dashboard') }}" class="active">Dashboard</a>
+                <a href="{{ url_for('job_readiness') }}">Job Readiness</a>
+                <a href="{{ url_for('study_schedule') }}">Study Schedule</a>
+                <a href="{{ url_for('technical_prep') }}">Technical Prep</a>
+                <a href="{{ url_for('interview_simulator') }}">Interview Prep</a>
+                <a href="{{ url_for('roadmap') }}">My Roadmap</a>
+            </div>
+            <div class="nav-user">
+                <span>👤 {{ username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <div class="welcome-section">
+                <h1>Welcome back, {{ username }}! 👋</h1>
+                <p>Let's continue building your future</p>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="card">
+                <h2>📋 Profile & Resume Analysis</h2>
+                <form id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="skills">Your Skills (comma-separated)</label>
+                            <input type="text" id="skills"
+                                   placeholder="Python, JavaScript, React, DSA..."
+                                   value="{{ profile.skills if profile else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="interests">Interests</label>
+                            <input type="text" id="interests"
+                                   placeholder="Web Dev, AI/ML, Mobile..."
+                                   value="{{ profile.interests if profile else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience">Experience Level</label>
+                        <select id="experience">
+                            <option value="Beginner"      {% if profile and profile.experience_level == 'Beginner' %}selected{% endif %}>Beginner</option>
+                            <option value="Intermediate"  {% if profile and profile.experience_level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                            <option value="Advanced"      {% if profile and profile.experience_level == 'Advanced' %}selected{% endif %}>Advanced</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resume_text">Paste Resume Text</label>
+                        <textarea id="resume_text" rows="6"
+                                  placeholder="Paste your resume content here for AI analysis...">{{ profile.resume_text if profile else '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Analyze Profile</button>
+                </form>
+
+                <div id="analysisResult" class="analysis-result"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">💻</div>
+                    <div class="stat-info">
+                        <h3>DSA Practice</h3>
+                        <p class="stat-value">{{ progress.dsa_count if progress else 0 }} tests</p>
+                        <p class="stat-label">Avg: {{ "%.1f"|format(progress.dsa_avg if progress else 0) }}%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎤</div>
+                    <div class="stat-info">
+                        <h3>Interview Prep</h3>
+                        <p class="stat-value">{{ progress.interview_count if progress else 0 }} sessions</p>
+                        <p class="stat-label">Avg: {{ "%.1f"|format(progress.interview_avg if progress else 0) }}/100</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <h3>Overall Progress</h3>
+                        <p class="stat-value">{{ ((progress.dsa_avg + progress.interview_avg) / 2)|int if progress else 0 }}%</p>
+                        <p class="stat-label">Keep it up!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Chart -->
+            <div class="card">
+                <h2>📊 Your Progress</h2>
+                <canvas id="progressChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2>🚀 Quick Actions</h2>
+                <div class="quick-actions">
+                    <a href="{{ url_for('job_readiness') }}" class="action-card">
+                        <div class="action-icon">🎯</div>
+                        <h3>Job Readiness</h3>
+                        <p>See how ready you are for your dream role</p>
+                    </a>
+                    <a href="{{ url_for('study_schedule') }}" class="action-card">
+                        <div class="action-icon">📅</div>
+                        <h3>Study Schedule</h3>
+                        <p>Get a personalized study schedule</p>
+                    </a>
+                    <a href="{{ url_for('interview_simulator') }}" class="action-card">
+                        <div class="action-icon">🎤</div>
+                        <h3>Interview Prep</h3>
+                        <p>Practice HR interview questions</p>
+                    </a>
+                    <a href="{{ url_for('roadmap') }}" class="action-card">
+                        <div class="action-icon">🗺️</div>
+                        <h3>My Roadmap</h3>
+                        <p>View your learning path</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Technical Preparation Card -->
+            <div class="card tech-prep-banner">
+                <div class="tech-prep-content">
+                    <div class="tech-prep-text">
+                        <h2>🖥️ Technical Preparation</h2>
+                        <p>Practice DSA coding problems, MCQs on OS, CN, DBMS, C, C++ and HR Interview questions — all in one place!</p>
+                        <div class="tech-prep-tags">
+                            <span class="tag">DSA</span>
+                            <span class="tag">OS</span>
+                            <span class="tag">CN</span>
+                            <span class="tag">DBMS</span>
+                            <span class="tag">C++</span>
+                            <span class="tag">C</span>
+                            <span class="tag">Interview</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('technical_prep') }}" class="btn-hero btn-tech-prep">
+                        Start Practicing →
+                    </a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Profile Form
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const skills      = document.getElementById('skills').value;
+            const interests   = document.getElementById('interests').value;
+            const experience  = document.getElementById('experience').value;
+            const resume_text = document.getElementById('resume_text').value;
+
+            try {
+                const response = await fetch('/update_profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ skills, interests, experience, resume_text })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const resultDiv = document.getElementById('analysisResult');
+                    if (data.analysis) {
+                        const a = data.analysis;
+                        resultDiv.innerHTML = `
+                            <div class="success-message">
+                                <h3>✅ Profile Updated & Resume Analyzed!</h3>
+                                <p><strong>Skills Found:</strong> ${a.skill_count} skills detected</p>
+                                <p><strong>Skills:</strong> ${a.skills_found.join(', ')}</p>
+                                <p><strong>Top Recommended Role:</strong> ${a.top_role}</p>
+                                <div class="role-matches">
+                                    <h4>Role Match Scores:</h4>
+                                    ${a.recommended_roles.map(r =>
+                                        `<div class="role-score"><span>${r[0]}</span><span class="score">${r[1]}%</span></div>`
+                                    ).join('')}
+                                </div>
+                            </div>`;
+                    } else {
+                        resultDiv.innerHTML = '<div class="success-message">Profile updated successfully!</div>';
+                    }
+                    setTimeout(() => location.reload(), 3000);
+                }
+            } catch (err) { console.error(err); }
+        });
+
+        // Progress Chart
+        async function loadChart() {
+            try {
+                const res  = await fetch('/get_progress_data');
+                const data = await res.json();
+                if (data.success) {
+                    const ctx = document.getElementById('progressChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['DSA Average', 'Interview Average', 'Overall Score'],
+                            datasets: [{
+                                label: 'Performance (%)',
+                                data: [
+                                    data.data.dsa_avg || 0,
+                                    data.data.interview_avg || 0,
+                                    ((data.data.dsa_avg + data.data.interview_avg) / 2) || 0
+                                ],
+                                backgroundColor: [
+                                    'rgba(52,152,219,0.7)',
+                                    'rgba(46,204,113,0.7)',
+                                    'rgba(155,89,182,0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(52,152,219,1)',
+                                    'rgba(46,204,113,1)',
+                                    'rgba(155,89,182,1)'
+                                ],
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: { y: { beginAtZero: true, max: 100 } }
+                        }
+                    });
+                }
+            } catch (err) { console.error(err); }
+        }
+        loadChart();
+    </script>
+</body>
+</html>

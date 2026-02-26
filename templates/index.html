@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillForge AI - Master Your Career</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #050510;
+            --card: #0d0d1f;
+            --border: rgba(99,102,241,0.2);
+            --primary: #6366f1;
+            --accent: #06b6d4;
+            --green: #10b981;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ── BACKGROUND ── */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow-1 {
+            position: fixed;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+            top: -200px; left: -200px;
+            pointer-events: none; z-index: 0;
+        }
+
+        .bg-glow-2 {
+            position: fixed;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%);
+            bottom: -100px; right: -100px;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 5%;
+            background: rgba(5,5,16,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links { display: flex; gap: 1rem; align-items: center; }
+
+        .nav-btn-outline {
+            padding: 0.6rem 1.5rem;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        .nav-btn-outline:hover { background: var(--primary); color: white; }
+
+        .nav-btn-fill {
+            padding: 0.6rem 1.5rem;
+            background: var(--primary);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        .nav-btn-fill:hover { background: #4f46e5; transform: translateY(-1px); }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 5% 5rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.2rem;
+            background: rgba(99,102,241,0.1);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .hero-badge span { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2s infinite; }
+
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(3rem, 7vw, 6rem);
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        .hero-title .line1 { display: block; color: var(--text); }
+        .hero-title .line2 {
+            display: block;
+            background: linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 1.2rem;
+            color: var(--muted);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.7;
+            animation: fadeUp 0.6s ease 0.2s both;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+            animation: fadeUp 0.6s ease 0.3s both;
+        }
+
+        .btn-primary-hero {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(99,102,241,0.3);
+        }
+        .btn-primary-hero:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(99,102,241,0.5); }
+
+        .btn-secondary-hero {
+            padding: 1rem 2.5rem;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.03);
+        }
+        .btn-secondary-hero:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ── STATS ── */
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeUp 0.6s ease 0.4s both;
+        }
+
+        .hero-stat { text-align: center; }
+        .hero-stat .num {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-stat .label { color: var(--muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+        /* ── FEATURES ── */
+        .section {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 5%;
+        }
+
+        .section-label {
+            display: block;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            text-align: center;
+            color: var(--muted);
+            max-width: 500px;
+            margin: 0 auto 4rem;
+            line-height: 1.7;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover { transform: translateY(-5px); border-color: rgba(99,102,241,0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon-wrap {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.7rem;
+        }
+
+        .feature-card p { color: var(--muted); line-height: 1.6; font-size: 0.95rem; }
+
+        /* ── HOW IT WORKS ── */
+        .how-section {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .step {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .step-num {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step h3 { font-weight: 700; margin-bottom: 0.5rem; }
+        .step p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+        /* ── SUBJECTS PREVIEW ── */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .subject-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+        .subject-pill:hover { border-color: var(--primary); background: rgba(99,102,241,0.08); transform: translateY(-3px); }
+        .subject-pill .pill-icon { font-size: 1.5rem; }
+
+        /* ── CTA ── */
+        .cta-section {
+            text-align: center;
+            padding: 8rem 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-box {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 4rem;
+            background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(6,182,212,0.08) 100%);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 24px;
+        }
+
+        .cta-box h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .cta-box p { color: var(--muted); margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.6; }
+
+        /* ── FOOTER ── */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.4; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-stats { gap: 2rem; }
+            .cta-box { padding: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- NAV -->
+    <nav>
+        <a href="{{ url_for('index') }}" class="nav-logo">⚡ SkillForge AI</a>
+        <div class="nav-links">
+            <a href="{{ url_for('login') }}"  class="nav-btn-outline">Login</a>
+            <a href="{{ url_for('signup') }}" class="nav-btn-fill">Get Started Free</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-badge">
+            <span></span> AI-Powered Career Platform for Engineers
+        </div>
+        <h1 class="hero-title">
+            <span class="line1">Land Your Dream</span>
+            <span class="line2">Tech Job Faster</span>
+        </h1>
+        <p class="hero-sub">
+            Master DSA, crush technical interviews, and track your progress — all with the power of AI guiding every step of your journey.
+        </p>
+        <div class="hero-btns">
+            <a href="{{ url_for('signup') }}" class="btn-primary-hero">Start For Free →</a>
+            <a href="{{ url_for('login') }}"  class="btn-secondary-hero">I Have an Account</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="num">500+</div>
+                <div class="label">DSA Problems</div>
+            </div>
+            <div class="hero-stat">
+                <div class="num">7</div>
+                <div class="label">Subject Tracks</div>
+            </div>
+            <div class="hero-stat">
+                <div class="num">AI</div>
+                <div class="label">Powered Feedback</div>
+            </div>
+            <div class="hero-stat">
+                <div class="num">100%</div>
+                <div class="label">Free to Use</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section">
+        <span class="section-label">What We Offer</span>
+        <h2 class="section-title">Everything You Need to Get Hired</h2>
+        <p class="section-sub">From coding practice to interview simulation — your complete technical preparation toolkit.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:rgba(99,102,241,0.15)">💻</div>
+                <h3>DSA Practice</h3>
+                <p>Solve real coding problems from Striver's curated sheet with full problem statements, constraints, and examples.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:rgba(6,182,212,0.15)">🎤</div>
+                <h3>Interview Simulator</h3>
+                <p>Practice HR interview questions and receive instant AI-powered feedback on tone, keywords, and response quality.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:rgba(16,185,129,0.15)">📊</div>
+                <h3>Job Readiness Score</h3>
+                <p>Get a personalized readiness percentage for your target role with a detailed skill gap analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:rgba(245,158,11,0.15)">🗺️</div>
+                <h3>AI Career Roadmap</h3>
+                <p>Receive a phase-by-phase learning roadmap tailored to your target company and role.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:rgba(239,68,68,0.15)">📅</div>
+                <h3>Study Schedule</h3>
+                <p>Generate a personalized daily and weekly study plan based on your available hours and roadmap.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:rgba(139,92,246,0.15)">🤖</div>
+                <h3>Resume Analyzer</h3>
+                <p>Paste your resume and our NLP engine instantly identifies your skills and recommends matching roles.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section how-section">
+        <span class="section-label">How It Works</span>
+        <h2 class="section-title">Simple. Structured. Effective.</h2>
+        <p class="section-sub">Four easy steps to go from beginner to job-ready.</p>
+
+        <div class="steps-grid">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>Create Account</h3>
+                <p>Sign up for free and set up your profile with your skills and target role.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>Assess Readiness</h3>
+                <p>Take the job readiness assessment and get your personalized AI roadmap.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>Practice Daily</h3>
+                <p>Solve DSA problems, take MCQ quizzes, and practice interview questions.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <h3>Track & Improve</h3>
+                <p>Monitor your progress with charts and keep improving until you're job-ready.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SUBJECTS -->
+    <section class="section">
+        <span class="section-label">Technical Tracks</span>
+        <h2 class="section-title">7 Subjects. One Platform.</h2>
+        <p class="section-sub">Practice all core computer science subjects needed to clear technical screening rounds.</p>
+
+        <div class="subjects-grid">
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">💻</span> DSA
+            </a>
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">🖥️</span> Operating Systems
+            </a>
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">🌐</span> Computer Networks
+            </a>
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">🗄️</span> DBMS
+            </a>
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">⚡</span> C++
+            </a>
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">🔤</span> C Programming
+            </a>
+            <a href="{{ url_for('login') }}" class="subject-pill">
+                <span class="pill-icon">🎤</span> HR Interview
+            </a>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="cta-box">
+            <h2>Ready to Get Hired? 🚀</h2>
+            <p>Join now and start your journey towards landing your dream tech job. It's completely free.</p>
+            <a href="{{ url_for('signup') }}" class="btn-primary-hero">Create Free Account →</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>⚡ SkillForge AI &nbsp;|&nbsp; Built for aspiring engineers &nbsp;|&nbsp; 2026</p>
+    </footer>
+</body>
+</html>

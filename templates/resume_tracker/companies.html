@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Tracker - CareerPathAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .companies-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .companies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .company-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        .company-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
+        }
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .company-name {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .tier-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .tier-faang { background: #fbbf24; color: #000; }
+        .tier-product { background: #3b82f6; color: #fff; }
+        .tier-service { background: #10b981; color: #fff; }
+        .tier-startup { background: #8b5cf6; color: #fff; }
+        .company-info {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .role-count {
+            color: #6366f1;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">CareerPathAI</div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('mock_test_subjects') }}">Mock Tests</a>
+            <a href="{{ url_for('resume_tracker') }}" class="active">Resume Tracker</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="companies-container">
+        <div class="page-header" style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #fff; font-size: 2.5rem; margin-bottom: 10px;">📄 Resume Tracker</h1>
+            <p style="color: #94a3b8; font-size: 1.1rem;">Select a company to check your readiness</p>
+        </div>
+
+        <div class="companies-grid">
+            {% for company in companies %}
+            <a href="{{ url_for('company_roles', company_id=company.id) }}" class="company-card">
+                <div class="company-header">
+                    <h2 class="company-name">{{ company.name }}</h2>
+                    <span class="tier-badge tier-{{ company.tier.lower() }}">{{ company.tier }}</span>
+                </div>
+                <p class="company-info">{{ company.industry }}</p>
+                <p class="role-count">{{ company.role_count }} roles available →</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
